@@ -1,3 +1,12 @@
 {
-  "framework": "nextjs"
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["cdg1"],
+  "functions": {
+    "src/app/api/upload/route.ts": {
+      "maxDuration": 30
+    }
+  }
 }
