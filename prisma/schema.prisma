@@ -1,0 +1,141 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+model AnalysisJob {
+  id            String      @id @default(cuid())
+  status        JobStatus   @default(PENDING)
+  sourceType    String
+  filePath      String
+  accessToken   String      @unique
+  resultJson    Json?
+  errorMessage  String?
+  createdAt     DateTime    @default(now())
+  expiresAt     DateTime
+  payment       Payment?
+}
+
+model Payment {
+  id               String         @id @default(cuid())
+  stripeSessionId  String         @unique
+  amountCents      Int
+  status           PaymentStatus  @default(PENDING)
+  createdAt        DateTime       @default(now())
+  jobId            String         @unique
+  job              AnalysisJob    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+}
+
+model SponsoredAd {
+  id         String   @id @default(cuid())
+  name       String
+  url        String
+  region     String?
+  label      String   @default("Sponsorisé")
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+}
+
+model LegalSource {
+  id        String   @id @default(cuid())
+  name      String
+  url       String?
+  type      String
+  priority  Int      @default(0)
+  createdAt DateTime @default(now())
+  documents LegalDocument[]
+  ingestions IngestionRun[]
+}
+
+model LegalDocument {
+  id          String   @id @default(cuid())
+  sourceId    String
+  title       String
+  code        String?
+  versionFrom DateTime?
+  versionTo   DateTime?
+  jurisdiction String?
+  createdAt   DateTime @default(now())
+  source      LegalSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  articles    LegalArticle[]
+  chunks      LegalChunk[]
+}
+
+model LegalArticle {
+  id          String   @id @default(cuid())
+  documentId  String
+  articleCode String
+  title       String?
+  content     String
+  effectiveAt DateTime?
+  effectiveTo DateTime?
+  createdAt   DateTime @default(now())
+  document    LegalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  chunks      LegalChunk[]
+  citations   RuleCitation[]
+}
+
+model LegalChunk {
+  id         String   @id @default(cuid())
+  documentId String
+  articleId  String?
+  content    String
+  embedding  Json?
+  embeddingModel String?
+  tokenCount Int?
+  createdAt  DateTime @default(now())
+  document   LegalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  article    LegalArticle? @relation(fields: [articleId], references: [id], onDelete: SetNull)
+}
+
+model Rule {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+  citations   RuleCitation[]
+}
+
+model RuleCitation {
+  id        String   @id @default(cuid())
+  ruleId    String
+  articleId String
+  note      String?
+  createdAt DateTime @default(now())
+  rule      Rule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  article   LegalArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+}
+
+model IngestionRun {
+  id        String   @id @default(cuid())
+  sourceId  String
+  status    String
+  notes     String?
+  startedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+  source    LegalSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+}

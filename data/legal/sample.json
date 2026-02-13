@@ -1,0 +1,19 @@
+{
+  "source": {
+    "name": "Code du travail (Legifrance)",
+    "type": "legifrance",
+    "url": "https://www.legifrance.gouv.fr"
+  },
+  "title": "Code du travail - Exemple",
+  "code": "CDT-SAMPLE",
+  "jurisdiction": "FR",
+  "versionFrom": "2024-01-01",
+  "articles": [
+    {
+      "articleCode": "L3121-1",
+      "title": "Durée du travail",
+      "content": "La durée légale du travail effectif des salariés est fixée à trente-cinq heures par semaine.",
+      "effectiveAt": "2008-01-01"
+    }
+  ]
+}
